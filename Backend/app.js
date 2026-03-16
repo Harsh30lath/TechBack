@@ -9,12 +9,9 @@ const UserRoute = require('./routes/UserRoute')
 const ProjectRoute = require('./routes/ProjectRoute')
 const CalendarRoute = require('./routes/CalendarRoute')
 const TodoRoute = require('./routes/TodoRoute')
-const TeamRoute = require('./routes/TeamRoute')
-const Team = require('./models/TeamModel')
-const Msg = require('./models/NotificationModel')
 const cookieParser = require('cookie-parser');
 const Chat = require('./models/ChatModel');
-
+const ChatRoute = require('./routes/ChatRoute')
 
 
 connectDB();
@@ -33,38 +30,25 @@ const io = SocketIO (server,{
     }
 })
 
-io.on("connection", (socket) => {
-  console.log("User Connected:", socket.id);
+io.on('connection',(socket)=>{
+  console.log('User connected : ', socket.id);
 
-  socket.on("chat", async ({ teamId, message, senderId }) => {
-  try {
-    const saved = await Chat.create({ teamId, sender: senderId, message });
-    const populated = await saved.populate("sender", "fullname email");
+  socket.on('Chat',async (data) =>{
+    const {senderId, message} = data;
+    const send  = await Chat.create({senderId, message});
+    io.emit('Chat',send)
+  })
 
-    io.to(teamId).emit("chat", {
-      _id:       populated._id,
-      message:   populated.message,
-      sender:    populated.sender,
-      teamId:    populated.teamId,
-      createdAt: populated.createdAt,
-    });
-  } catch (err) {
-    console.error("chat error:", err.message);
-    socket.emit("error", { message: "Failed to send message" });
-  }
-});
-
-  socket.on("disconnect", () => {
-    console.log("User Disconnected:", socket.id);
-  });
-});
-
+  socket.on('disconnect',() =>{
+    console.log('User disconnected : ',socket.id);
+  })
+})
 
 app.use('/api/user',UserRoute);
 app.use('/api/project',ProjectRoute);
 app.use('/api/calendar',CalendarRoute);
 app.use('/api/todo',TodoRoute);
-app.use('/api/team',TeamRoute);
+app.use('/api/chat',ChatRoute);
 
 
 server.listen(5000,()=>{

@@ -77,9 +77,7 @@ const getProject = asynchandler( async(req,res)=>{
         res.status(404);
         throw new Error("Project doesnot Exist. Please create one!")
     }
-
-    const find = await Project.findById(req.params.id)
-    res.status(200).json(find);
+    res.status(200).json(project);
 })
 
 module.exports = {addProject,deleteProject,allProject,editProject,getProject}

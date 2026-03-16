@@ -82,7 +82,8 @@ const register = asynchandler(async (req,res)=>{
 
 
 const current = asynchandler(async(req,res) =>{
-   res.json(req.user)
+    const user = await User.findById(req.user.id).select("fullname email");
+    res.json(user)
 });
 
 const logout = asynchandler(async (req, res) => {
@@ -117,7 +118,7 @@ const getAllUsers = asynchandler(async (req, res) => {
   // Return all users except the current user
   const users = await User.find(
     { _id: { $ne: req.user.id } },
-    "fullname email _id"          // only send safe fields
+    "fullname email "          // only send safe fields
   );
   res.status(200).json(users);
 });
